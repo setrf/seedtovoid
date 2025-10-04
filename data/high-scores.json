@@ -1,0 +1,56 @@
+{
+  "easy": [],
+  "normal": [
+    {
+      "username": "Playerr",
+      "score": 973,
+      "timeSurvived": 53,
+      "threatsDefeated": 0,
+      "cellsPlaced": 0,
+      "difficulty": "normal",
+      "id": 4,
+      "timestamp": "2025-10-03T19:44:25.607Z"
+    },
+    {
+      "username": "TG",
+      "score": 175,
+      "timeSurvived": 23,
+      "threatsDefeated": 0,
+      "cellsPlaced": 0,
+      "difficulty": "normal",
+      "id": 2,
+      "timestamp": "2025-10-03T19:20:30.633Z"
+    },
+    {
+      "username": "TG",
+      "score": 103,
+      "timeSurvived": 20,
+      "threatsDefeated": 0,
+      "cellsPlaced": 0,
+      "difficulty": "normal",
+      "id": 3,
+      "timestamp": "2025-10-03T19:20:52.944Z"
+    },
+    {
+      "username": "Player",
+      "score": 76,
+      "timeSurvived": 17,
+      "threatsDefeated": 0,
+      "cellsPlaced": 0,
+      "difficulty": "normal",
+      "id": 1,
+      "timestamp": "2025-10-03T05:26:01.836Z"
+    },
+    {
+      "username": "TestUser",
+      "score": 500,
+      "timeSurvived": 30,
+      "threatsDefeated": 5,
+      "cellsPlaced": 50,
+      "difficulty": "normal",
+      "id": 5,
+      "timestamp": "2025-10-04T18:53:40.127Z"
+    }
+  ],
+  "hard": []
+}
