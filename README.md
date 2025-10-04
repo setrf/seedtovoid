@@ -64,13 +64,25 @@ A fast, touch‑friendly survival take on Conway’s Game of Life. You command a
   - `GET /api/high-scores?difficulty=easy|normal|hard` → top 10 scores for a difficulty
   - `POST /api/high-scores` → create a score. Validated with zod against the shared schema.
 - Storage: `server/storage.ts`
-  - Default is `MemStorage` (in‑memory). For Postgres, use `DBStorage` (Drizzle ORM). Toggle by exporting the desired class at the bottom of the file.
+  - **Default is `FileStorage`** (JSON file persistence) - Stores scores in `data/high-scores.json`
+  - Alternative: `MemStorage` (in-memory, lost on restart)
+  - Alternative: `DBStorage` (PostgreSQL via Drizzle ORM)
+  - Toggle by changing the export at the bottom of the file
 - Schema: `shared/schema.ts` (Drizzle + zod)
   - Table `high_scores` with fields: `id`, `username`, `score`, `timeSurvived`, `threatsDefeated`, `cellsPlaced`, `timestamp`, `difficulty`.
 
-To enable Postgres:
+### Storage Options
+
+**FileStorage (Default - Production)**
+- Persists scores to `data/high-scores.json`
+- Auto-creates directory structure on startup
+- Maintains ID sequence across restarts
+- No database required
+- Simple backup: copy JSON file
+
+**To enable Postgres (DBStorage)**:
 1. Set `DATABASE_URL` in the environment.
-2. Switch `export const storage = new MemStorage();` to `export const storage = new DBStorage();` in `server/storage.ts`.
+2. Switch `export const storage = new FileStorage();` to `export const storage = new DBStorage();` in `server/storage.ts`.
 3. Apply the schema to your DB (Drizzle migrations or manual create) and restart the server.
 
 
@@ -82,6 +94,65 @@ To enable Postgres:
   - Builds client to `dist/public` (Vite), bundles server to `dist/index.js` (esbuild).
 - Production: `npm start`
   - Runs Node on the bundled server; serves static client and `/api`.
+
+## Production Deployment
+
+The application is deployed to `/opt/seedtovoid/` and runs as a systemd service.
+
+### Deployment Process
+
+```bash
+# 1. Build the application
+npm run build
+
+# 2. Deploy to production
+sudo rsync -av dist/ /opt/seedtovoid/dist/
+
+# 3. Restart the service
+sudo systemctl restart seedtovoid.service
+```
+
+### Hot Deploy (Client Only - No Downtime)
+
+When only client files change (HTML, CSS, JS), deploy without restarting:
+
+```bash
+# Build only
+npm run build
+
+# Deploy only static files
+sudo rsync -av dist/public/ /opt/seedtovoid/dist/public/
+
+# No restart needed - Express serves updated files immediately
+```
+
+### Service Management
+
+```bash
+# Check status
+systemctl status seedtovoid.service
+
+# View logs
+journalctl -u seedtovoid -n 100 -f
+
+# Restart service
+sudo systemctl restart seedtovoid.service
+```
+
+### Environment Configuration
+
+Located at `/etc/seedtovoid.env`:
+```env
+NODE_ENV=production
+PORT=4006
+NODE_PATH=/opt/seedtovoid/node_modules
+```
+
+### Data Persistence
+
+- **High Scores**: Stored in `/opt/seedtovoid/data/high-scores.json`
+- **Backup**: `sudo cp /opt/seedtovoid/data/high-scores.json ~/backup-scores-$(date +%F).json`
+- **Restore**: `sudo cp ~/backup-scores-YYYY-MM-DD.json /opt/seedtovoid/data/high-scores.json`
 
 
 ## Configuration & Tuning
@@ -98,10 +169,19 @@ To enable Postgres:
 - Touch: simple tap to toggle a cell or stamp the selected pattern. Hit targets are widened; `touchAction: 'manipulation'` avoids scroll interference.
 
 
+## Analytics
+
+The application includes Google Analytics (G-740WZ4LG3W) for tracking:
+- Page views and user sessions
+- Gameplay interactions and events
+- Traffic sources and user behavior
+
+The tracking code is loaded in `client/index.html` and automatically tracks page views. No additional configuration required.
+
 ## Notes & Extensibility
 
 - Replace mode is wired in the store; surfacing it in UI is straightforward (toggle chip in Controls).
-- Resources/unlocks scaffolding exists in the store and logs; it’s disabled in onboarding and not exposed in UI.
+- Resources/unlocks scaffolding exists in the store and logs; it's disabled in onboarding and not exposed in UI.
 - Cooldown/Level reset behavior:
   - Cooldowns freeze when paused; resume honors the remaining time.
   - Level resets to 0 on defeat and on reset/try‑again. Escalation resumes once playing.
